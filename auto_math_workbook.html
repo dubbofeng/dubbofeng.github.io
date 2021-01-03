@@ -1,0 +1,197 @@
+<html>
+	<head>
+		<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<style>
+			table{
+				border-collapse: collapse;
+				display: inline;
+			}
+			body, td{
+				font-size: 18px;
+				letter-spacing: 10px;
+			}
+			.divideWrap{
+				position: relative;
+				width: 10px;
+    			height: 30px;
+			}
+			.divide{
+				position: absolute;
+			    top: -12px;
+			    right: -13px;
+			    font-size: 32px;
+			}
+			#answer{
+				letter-spacing: 1px;
+			}
+			@media print {
+			  #options{display: none;}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row" style="margin: 40px 20px;" id="options">
+				<div class="col-sm-4">
+					<select name="" id="dig1">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+					</select>位数
+					<select name="" id="sign">
+						<option value="+">+</option>
+						<option value="-">-</option>
+						<option value="×">×</option>
+						<option value="÷">÷</option>
+					</select>
+					<select name="" id="dig2">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+					</select>位数
+				</div>
+				<div class="col-sm-3">
+					小数点<select name="" id="decimal">
+						<option value="0">0</option>
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+					</select>位
+				</div>
+				<div class="col-sm-5">
+					除法
+					<select name="" id="divType">
+						<option value="1">取余</option>
+						<option value="2">小数</option>
+					</select>
+					&nbsp;&nbsp;&nbsp;
+					<select name="" id="type">
+						<option value="1">横式</option>
+						<option value="2">竖式</option>
+					</select>
+					<button id="generate">生成</button>
+				</div>
+			</div>
+			<div class="row" id="sheet" style="page-break-after: always;margin: 40px 20px;">
+				
+			</div>
+			<div class="row" id="answer" style="margin: 40px 20px;">
+				
+			</div>
+		</div>
+		<script>
+			jQuery(document).ready(function($) {
+				function strip(num, precision = 12) {
+				  return +parseFloat(num.toPrecision(precision));
+				}
+				$("#generate").click(function(event) {
+					$("#sheet").empty();
+					$("#answer").empty();
+					var dig1 = parseInt($("#dig1").val());
+					var dig2 = parseInt($("#dig2").val());
+					var sign = $("#sign").val();
+					var deci = parseInt($("#decimal").val());
+					var decimal = Math.pow(10, deci);
+					var type = $("#type").val();
+					var divType = $("#divType").val();
+					if(type == 1){
+						var height = 40;
+						var number = 120;
+					}else{
+						switch (sign){
+							case "+":
+							case "-":
+								var height = 120;
+								var number = 40;
+								break;
+							case "×":
+								var height = 30*(dig1+dig2+deci+2);
+								var number = Math.ceil(1000 / height)*4;
+								break;
+							case "÷":
+								var height = 80+30*dig1*dig2;
+								var number = Math.ceil(1000 / height)*4;
+								break;
+						}
+					}
+					for (var i = 1; i <= number; i++) {
+						var d1p = Math.pow(10, dig1);
+						var d1 = Math.floor((Math.random() * (d1p - d1p/10) + d1p/10)* decimal)/decimal;
+						var d2p = Math.pow(10, dig2);
+						var d2 = Math.floor((Math.random() * (d2p - d2p/10) + d2p/10) * decimal)/decimal;
+						var html = '<div class="col-sm-3" style="height: '+height+'px;"><span style="letter-spacing:1px;">('+i+')</span> ';
+						if(d2 > d1){
+							var dt = d2;
+							d2 = d2;
+							d1 = dt;
+						}
+						if(type == 1){
+							html += '<span style="letter-spacing:1px;">'+d1+' '+sign+' '+d2+' = </span>';
+						}else{
+							if(sign!="÷"){
+								html+= '<table> \
+									<tr> \
+										<td></td> \
+										<td align="right">'+d1+'</td> \
+									</tr> \
+									<tr style="border-bottom: 1px solid black;"> \
+										<td>'+sign+'</td> \
+										<td align="right">'+d2+'</td> \
+									</tr> \
+									<tr> \
+										<td></td> \
+										<td></td> \
+									</tr> \
+								</table>';
+							}else{
+								html+= '<table> \
+									<tr> \
+										<td></td> \
+										<td></td> \
+									</tr> \
+									<tr> \
+										<td></td> \
+										<td></td> \
+										<td style="border-bottom: 1px solid black;"></td> \
+									</tr> \
+									<tr> \
+										<td>'+d2+'</td> \
+										<td><div class="divideWrap"><div class="divide">/</div></div></td> \
+										<td align="right">'+d1+'</td> \
+									</tr> \
+								</table>';
+							}
+						}
+						html += '</div>'
+						$("#sheet").append(html);
+						switch (sign){
+							case "+":
+								var result = strip(d1 + d2);
+								break;
+							case "-":
+								var result = strip(d1 - d2);
+								break;
+							case "×":
+								var result = strip(d1 * d2);
+								break;
+							case "÷":
+								if(divType == "1"){
+									var quotient = Math.floor(d1/d2);
+									var remainder = d1 % d2;
+									var result = quotient + (remainder>0?" r "+remainder:"");
+								}else{
+									var result = strip(Math.floor(100*d1/d2)/100);
+								}
+								break;
+						}
+						$("#answer").append("<div class='col-sm-3'>("+i+") "+result+"</div>");
+					};
+				});
+			});
+		</script>
+	</body>
+</html>
